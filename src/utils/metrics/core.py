@@ -250,26 +250,34 @@ class MetricsCore(ABC):
             raise ValueError(f'Wrong log likelihood shape. Expected 1, got {len(self.__step_ll_per_event.shape)}')
 
     def __append_step_values(self):
+        
         self.__return_time_target = torch.concat([
             self.__return_time_target,
             self.__step_return_time_target.detach().clone().cpu()
         ])
+        
         self.__event_type_target = torch.concat([
             self.__event_type_target,
             self.__step_event_type_target.detach().clone().cpu()
         ])
+        
         self.__return_time_predicted = torch.concat([
             self.__return_time_predicted,
             self.__step_return_time_predicted.detach().clone().cpu()
         ])
+        
         self.__event_type_predicted = torch.concat([
             self.__event_type_predicted,
             self.__step_event_type_predicted.detach().clone().cpu()
         ])
+        
         self.__ll_per_event = torch.concat([
             self.__ll_per_event,
             self.__step_ll_per_event.detach().clone().cpu()
         ])
+        
+        
+        
 
     def compute_loss_and_add_values(
         self,
@@ -288,18 +296,25 @@ class MetricsCore(ABC):
         return:
             loss - torch.Tensor, loss for backpropagation
         """
+             
         self.__step_return_time_target    = self.get_return_time_target(inputs)
         self.__step_event_type_target     = self.get_event_type_target(inputs)
         self.__step_return_time_predicted = self.get_return_time_predicted(pl_module, inputs, outputs)
         self.__step_event_type_predicted  = self.get_event_type_predicted(pl_module, inputs, outputs)
         self.__step_ll_per_event          = self.compute_log_likelihood_per_event(pl_module, inputs, outputs)
+        
+        self.__return_time_target    = self.__step_return_time_target 
+        self.__event_type_target     = self.__step_event_type_target
+        self.__return_time_predicted = self.__step_return_time_predicted
+        self.__event_type_predicted  = self.__step_event_type_predicted
+        self.__ll_per_event          = self.__step_ll_per_event
 
         self.__check_shapes()
 
-        self.__append_step_values()
-
+        # self.__append_step_values()
+        
         loss = self.compute_loss(pl_module, inputs, outputs)
-
+        
         return loss
 
     def compute_metrics(

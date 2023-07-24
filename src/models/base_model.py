@@ -56,8 +56,9 @@ class BaseEventModule(LightningModule):
         return self.net(*batch)
 
     def step(self, batch: Any, stage: str):
+        
         outputs = self.forward(batch)
-
+    
         if stage == 'train':
             loss = self.train_metrics.compute_loss_and_add_values(self, batch, outputs)
         if stage == 'val':
@@ -68,13 +69,14 @@ class BaseEventModule(LightningModule):
         return loss, outputs
 
     def training_step(self, batch: Any, batch_idx: int):
+        
         loss, out = self.step(batch, 'train')
+        
 
         if type(loss) != torch.Tensor:
             assert len(loss) == 2
 
             self.log("train/loss", loss[0] + loss[1], on_step=False, on_epoch=True, prog_bar=False)
-            print(loss[0], loss[1])
 
             if self.hparams.head_start is not None:
                 if self.current_epoch>=self.hparams.head_start:
